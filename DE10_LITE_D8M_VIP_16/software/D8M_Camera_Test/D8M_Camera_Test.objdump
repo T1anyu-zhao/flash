@@ -3326,10 +3326,10 @@ int main()
     	int boundingBoxColour = 0;
    21854:	e03ffa15 	stw	zero,-24(fp)
     	alt_u32 exposureTime = EXPOSURE_INIT;
-   21858:	008d4004 	movi	r2,13568
+   21858:	008c0004 	movi	r2,12288
    2185c:	e0bffb15 	stw	r2,-20(fp)
     	alt_u16 gain = GAIN_INIT;
-   21860:	0080c004 	movi	r2,768
+   21860:	0080d404 	movi	r2,848
    21864:	e0bffc0d 	sth	r2,-16(fp)
 
         OV8865SetExposure(exposureTime);

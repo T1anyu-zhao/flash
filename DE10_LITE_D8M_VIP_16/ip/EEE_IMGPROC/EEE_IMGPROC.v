@@ -177,29 +177,22 @@ assign grey = green[7:1] + red[7:2] + blue[7:2]; //Grey = green/2 + red/4 + blue
 //					  (fir_detect[3] && sec_detect[3]) ? colour_set[3] :
 //					  (fir_detect[4] && sec_detect[4]) ? colour_set[4] :
 //					  (fir_detect[5] && sec_detect[5]) ? colour_set[5] : {grey, grey, grey};
-/*assign colour_high = l_green_high ? l_green_set:
-					 d_green_high ? d_green_set:
-					 red_high	  ? red_set    :
-					 pink_high    ? pink_set   :
-					 yellow_high  ? yellow_set :
-					 d_blue_high  ? d_blue_set : 
-					 building_edge ? edge_colour : {grey,grey,grey};*/
-assign colour_high = building_edge ? edge_colour : {grey,grey,grey};
-
-assign colour_high_without = l_green_det ? l_green_set:
-					 d_green_det ? d_green_set:
-					 red_det	  ? red_set    :
-					 pink_det    ? pink_set   :
-					 yellow_det  ? yellow_set :
-					 d_blue_det  ? d_blue_set : {grey,grey,grey};
-					 
-assign block_top_high = ( y > 200 ) ? colour_high : {grey,grey,grey};
+assign colour_high = l_green_high&&( y > 200 ) ? l_green_set:
+							d_green_high&&( y > 200 ) ? d_green_set:
+							red_high		&&( y > 200 ) ? red_set    :
+							pink_high	&&( y > 200 ) ? pink_set   :
+							yellow_high	&&( y > 200 ) ? yellow_set :
+							d_blue_high	&&( y > 200 ) ? d_blue_set : {grey,grey,grey};
+//assign colour_high = building_edge ? edge_colour : {grey,grey,grey};
+			 
+//assign block_top_high = &&( y > 200 ) ? colour_high : {grey,grey,grey};
 
 
 // Show bounding box
-//genvar j;
+
 wire [23:0] new_image,new_image_without,image_out;
 wire bb_active_lg,bb_active_dg,bb_active_r,bb_active_p,bb_active_y,bb_active_db;
+
 
 assign bb_active_lg= (x == left_lg) || (x == right_lg); // | (y == top[j]) | (y == bottom[j]);
 assign bb_active_dg= (x == left_dg) || (x == right_dg);
@@ -213,7 +206,7 @@ assign new_image = bb_active_lg ? l_green_set
                  : bb_active_r  ? red_set
                  : bb_active_p  ? pink_set
                  : bb_active_y  ? yellow_set
-                 : bb_active_db ? d_blue_set : block_top_high;
+                 : bb_active_db ? d_blue_set : colour_high;
 /*					  
 assign new_image_without = bb_active_lg ? l_green_set
                  : bb_active_dg ? d_green_set
@@ -254,37 +247,74 @@ always@(posedge clk) begin
 end
 
 //Find first and last red pixels
-reg [10:0] x_max_lg,x_max_dg,x_max_r,x_max_p,x_max_y,x_max_db;
+reg [10:0] x_max_lg,x_max_dg,x_max_r,x_max_p,x_max_y,x_max_db,x_max_build;
 reg [10:0] y_max;
-reg [10:0] x_min_lg,x_min_dg,x_min_r,x_min_p,x_min_y,x_min_db;
+reg [10:0] x_min_lg,x_min_dg,x_min_r,x_min_p,x_min_y,x_min_db,x_min_build;
 reg [10:0] y_min;
+reg [10:0] pre_max_lg1,pre_max_lg2,pre_min_lg1,pre_min_lg2;
+reg [10:0] pre_max_dg1,pre_max_dg2,pre_min_dg1,pre_min_dg2;
+reg [10:0] pre_max_r1,pre_max_r2,pre_min_r1,pre_min_r2;
+reg [10:0] pre_max_p1,pre_max_p2,pre_min_p1,pre_min_p2;
+reg [10:0] pre_max_y1,pre_max_y2,pre_min_y1,pre_min_y2;
+reg [10:0] pre_max_db1,pre_max_db2,pre_min_db1,pre_min_db2;
+
 
 always@(posedge clk) begin     //Update bounds
+	
+
 	if (l_green_high & in_valid) begin	
 			if (x < x_min_lg) x_min_lg <= x;
 			if (x > x_max_lg) x_max_lg <= x;
+			pre_max_lg2 <= pre_max_lg1;
+			pre_max_lg1 <= x_max_lg;
+			pre_min_lg2 <= pre_min_lg1;
+			pre_min_lg1 <= x_min_lg;
 			//if (y < y_min[i]) y_min[i] <= y;
 			//y_max[i] <= y;
 	end
 	if (d_green_high & in_valid) begin	
 			if (x < x_min_dg) x_min_dg <= x;
 			if (x > x_max_dg) x_max_dg <= x;
+			pre_max_dg2 <= pre_max_dg1;
+			pre_max_dg1 <= x_max_dg;
+			pre_min_dg2 <= pre_min_dg1;
+			pre_min_dg1 <= x_min_dg;
+	
 	end
 	if (red_high & in_valid) begin	
 			if (x < x_min_r) x_min_r <= x;
 			if (x > x_max_r) x_max_r <= x;
+			pre_max_r2 <= pre_max_r1;
+			pre_max_r1 <= x_max_r;
+			pre_min_r2 <= pre_min_r1;
+			pre_min_r1 <= x_min_r;
+	
 	end
 	if (pink_high & in_valid) begin	
 			if (x < x_min_p) x_min_p <= x;
 			if (x > x_max_p) x_max_p <= x;
+			pre_max_p2 <= pre_max_p1;
+			pre_max_p1 <= x_max_p;
+			pre_min_p2 <= pre_min_p1;
+			pre_min_p1 <= x_min_p;
+	
 	end
 	if (yellow_high & in_valid) begin	
 			if (x < x_min_y) x_min_y <= x;
 			if (x > x_max_y) x_max_y <= x;
+			pre_max_y2 <= pre_max_y1;
+			pre_max_y1 <= x_max_y;
+			pre_min_y2 <= pre_min_y1;
+			pre_min_y1 <= x_min_y;
+	
 	end
 	if (d_blue_high & in_valid) begin	
 			if (x < x_min_db) x_min_db <= x;
 			if (x > x_max_db) x_max_db <= x;
+			pre_max_db2 <= pre_max_db1;
+			pre_max_db1 <= x_max_db;
+			pre_min_db2 <= pre_min_db1;
+			pre_min_db1 <= x_min_db;
 	end
 
 	if (sop & in_valid) begin	//Reset bounds on start of packet
@@ -317,18 +347,45 @@ always@(posedge clk) begin
 	if (eop & in_valid & packet_video) begin  //Ignore non-video packets
 		
 		//Latch edges for display overlay on next frame
-		left_lg <= x_min_lg;
-		left_dg <= x_min_dg;
-		left_r  <= x_min_r;
-		left_p  <= x_min_p;
-		left_y  <= x_min_y;
-		left_db <= x_min_db;
-		right_lg <= x_max_lg;
-		right_dg <= x_max_dg;
-		right_r  <= x_max_r;
-		right_p  <= x_max_p;
-		right_y  <= x_max_y;
-		right_db <= x_max_db;
+		if(pre_max_lg1 == pre_max_lg2 && pre_max_lg1 == x_max_lg)begin
+			right_lg <= x_max_lg;
+		end
+		if(pre_max_dg1 == pre_max_dg2 && pre_max_dg1 == x_max_dg)begin
+			right_dg <= x_max_dg;
+		end
+		if(pre_max_r1 == pre_max_r2 && pre_max_r1 == x_max_r)begin
+			right_r  <= x_max_r;
+		end
+		if(pre_max_p1 == pre_max_p2 && pre_max_p1 == x_max_p)begin
+			right_p  <= x_max_p;
+		end
+		if(pre_max_y1 == pre_max_y2 && pre_max_y1 == x_max_y)begin
+			right_y  <= x_max_y;
+		end
+		if(pre_max_db1 == pre_max_db2 && pre_max_db1 == x_max_db)begin
+			right_db <= x_max_db;
+		end
+		if(pre_min_lg1 == pre_min_lg2 && pre_min_lg1 == x_min_lg)begin
+			left_lg <= x_min_lg;
+		end
+		if(pre_min_dg1 == pre_min_dg2 && pre_min_dg1 == x_min_dg)begin
+			left_dg <= x_min_dg;	
+		end
+		if(pre_min_r1 == pre_min_r2 && pre_min_r1 == x_min_r)begin
+			left_r <= x_min_r;
+		end
+		if(pre_min_p1 == pre_min_p2 && pre_min_p1 == x_min_p)begin
+			left_p <= x_min_p;
+		end
+		if(pre_min_y1 == pre_min_y2 && pre_min_y1 == x_min_y)begin
+			left_y <= x_min_y;
+		end
+		if(pre_min_db1 == pre_min_db2 && pre_min_db1 == x_min_db)begin
+			left_db <= x_min_db;
+		end
+
+		
+		;
 		//Start message writer FSM once every MSG_INTERVAL frames, if there is room in the FIFO
 		frame_count <= frame_count - 1;
 
@@ -342,7 +399,60 @@ always@(posedge clk) begin
 	if (msg_state != 2'b00) msg_state <= msg_state + 2'b01;
 
 end
-	
+
+//calculate the distance and angle to trans
+wire [3:0] distance_lg,distance_dg,distance_r,distance_p,distance_y,distance_db,distance_build;
+wire [3:0] angle_lg,angle_dg,angle_r,angle_p,angle_y,angle_db,angle_build;
+
+dis_measure lg_meas(
+	.x_max(right_lg),
+	.x_min(left_lg),
+	.distance(distance_lg),
+	.angle(angle_lg)
+);
+
+dis_measure dg_meas(
+	.x_max(right_dg),
+	.x_min(left_dg),
+	.distance(distance_dg),
+	.angle(angle_dg)
+);
+
+dis_measure r_meas(
+	.x_max(right_r),
+	.x_min(left_r),
+	.distance(distance_r),
+	.angle(angle_r)
+);
+
+dis_measure p_meas(
+	.x_max(right_p),
+	.x_min(left_p),
+	.distance(distance_p),
+	.angle(angle_p)
+);
+
+dis_measure yellow(
+	.x_max(right_y),
+	.x_min(left_y),
+	.distance(distance_y),
+	.angle(angle_y)
+);
+
+dis_measure db_meas(
+	.x_max(right_db),
+	.x_min(left_db),
+	.distance(distance_db),
+	.angle(angle_db)
+);
+/*
+dis_measure build_meas(
+	.x_max(right_build),
+	.x_min(left_build),
+	.distance(distance_build),
+	.angle(angle_build)
+);
+*/
 //Generate output messages for CPU
 reg [31:0] msg_buf_in; 
 wire [31:0] msg_buf_out;
@@ -361,15 +471,16 @@ always@(*) begin	//Write words to FIFO as state machine advances
 		end
 		2'b01: begin
 			msg_buf_in = `RED_BOX_MSG_ID;	//Message ID
-			msg_buf_wr = 1'b1;
+			msg_buf_wr = 1'b0;
 		end
 		2'b10: begin
-			msg_buf_in = {5'b0, x_min_lg, 5'b0, x_max_lg};	//Top left coordinate
-			msg_buf_wr = 1'b1;//01a000/0000 0001 
+			msg_buf_in = { distance_r,angle_r, distance_dg,angle_dg, distance_lg,angle_lg, 8'b0};	
+			msg_buf_wr = 1'b1; //red,dark green, light green, header
+			//each distance has 4bits, accuracy of 5cm, each degree has 3bit, accurancy of 5 degrees.
 		end
 		2'b11: begin
-			msg_buf_in = {5'b0, x_min_dg, 5'b0, x_max_dg}; //Bottom right coordinate
-			msg_buf_wr = 1'b1;
+			msg_buf_in = { /*distance_build,angle_build,*/8'b0, distance_db,angle_db, distance_y,angle_y, distance_p,angle_p}; 
+			msg_buf_wr = 1'b1; //building, dark blue, yellow, pink
 		end
 	endcase
 end
@@ -575,3 +686,21 @@ always @(posedge clk) begin
 end
 */
 
+/*
+assign colour_high_without = l_green_det ? l_green_set:
+					 d_green_det ? d_green_set:
+					 red_det	  ? red_set    :
+					 pink_det    ? pink_set   :
+					 yellow_det  ? yellow_set :
+					 d_blue_det  ? d_blue_set : {grey,grey,grey};
+*/	
+
+/*
+wire [10:0] width_lg,width_dg,width_r,width_p,width_y,width_db;
+assign width_lg = x_max_lg - x_min_lg;
+assign width_dg = x_max_dg - x_min_dg;
+assign width_r  = x_max_r  - x_min_r;
+assign width_p  = x_max_p  - x_min_p;
+assign width_y  = x_max_y  - x_min_y;
+assign width_db = x_max_db - x_min_db;
+*/
