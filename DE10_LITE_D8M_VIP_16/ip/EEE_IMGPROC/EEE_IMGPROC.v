@@ -405,43 +405,43 @@ wire [3:0] distance_lg,distance_dg,distance_r,distance_p,distance_y,distance_db,
 wire [3:0] angle_lg,angle_dg,angle_r,angle_p,angle_y,angle_db,angle_build;
 
 dis_measure lg_meas(
-	.x_max(right_lg),
-	.x_min(left_lg),
+	.x_max(x_max_lg),
+	.x_min(x_min_lg),
 	.distance(distance_lg),
 	.angle(angle_lg)
 );
 
 dis_measure dg_meas(
-	.x_max(right_dg),
-	.x_min(left_dg),
+	.x_max(x_max_dg),
+	.x_min(x_min_dg),
 	.distance(distance_dg),
 	.angle(angle_dg)
 );
 
 dis_measure r_meas(
-	.x_max(right_r),
-	.x_min(left_r),
+	.x_max(x_max_r),
+	.x_min(x_min_r),
 	.distance(distance_r),
 	.angle(angle_r)
 );
 
 dis_measure p_meas(
-	.x_max(right_p),
-	.x_min(left_p),
+	.x_max(x_max_p),
+	.x_min(x_min_p),
 	.distance(distance_p),
 	.angle(angle_p)
 );
 
 dis_measure yellow(
-	.x_max(right_y),
-	.x_min(left_y),
+	.x_max(x_max_y),
+	.x_min(x_min_y),
 	.distance(distance_y),
 	.angle(angle_y)
 );
 
 dis_measure db_meas(
-	.x_max(right_db),
-	.x_min(left_db),
+	.x_max(x_max_db),
+	.x_min(x_min_db),
 	.distance(distance_db),
 	.angle(angle_db)
 );
