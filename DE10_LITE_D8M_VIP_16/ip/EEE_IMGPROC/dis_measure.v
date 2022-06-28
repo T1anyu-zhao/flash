@@ -23,9 +23,9 @@ wire[10:0] x_mid;
 wire[3:0] degree;
 
 assign x_mid = x_max-x_min;
-assign degree = ( 300 < x_mid && x_mid < 340  ) ? 4'd5 :
-               ( x_mid <= 300 )       ? 4'd1 :
-               ( x_mid >= 340 )       ? 4'd9 : 4'd0;
+assign degree = ( 300 < x_mid && x_mid < 340  ) ? 4'd4 :
+               ( x_mid <= 300 )       ? 4'd0 :
+               ( x_mid >= 340 )       ? 4'd8 : 4'd0;
 
 assign angle = degree + 1'b1; //the angle offset.
 
